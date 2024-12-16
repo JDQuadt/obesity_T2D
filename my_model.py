@@ -1,87 +1,4 @@
-
 import numpy as np
-
-pars={} 
-pars['eg0']=24.48
-pars['k']=700
-pars['bv']=5
-pars['mmax']=1
-pars['alpha_m']=140
-pars['km']=2
-pars['alpha_isr']=1.2
-pars['kisr']=2
-pars['pmax']=4.55
-pars['kp']=4
-pars['alpha_p']=35
-pars['p_b']=0
-pars['amax']=5
-pars['alpha_a']=0.37
-pars['ka']=6
-pars['a_b']=0.9
-pars['tau_b']=1800
-pars['height']=1.8
-pars['age_b']=30
-pars['sex']=1
-pars['cage']=0
-pars['target_si']=1.4
-pars['tau_si']=1
-pars['bmi_h']=25
-pars['mffa']=0.8
-pars['ksi_infl']=1.8
-pars['ksi_ffa']=400
-pars['nsi_ffa']=6
-pars['sw11']=1
-pars['inc_i1']=0
-pars['inc_i2']=0
-pars['inc_i3']=0
-pars['it1']=0
-pars['it2']=100000
-pars['it3']=100000
-pars['tau_w']=1.5
-pars['k_infl']=40
-pars['n_infl']=6
-pars['infl_b']=0
-pars['tau_infl']=1
-pars['hgp_bas']=2000
-pars['hepa_max']=3000
-pars['hepa_sic']=1
-pars['a_hgp']=4
-pars['gcg']=0.1
-pars['k_gcg']=0
-pars['s']=0.0002
-pars['png']=350
-pars['sigma_b']=536
-pars['sgmu']=1.5
-pars['sgmd']=1
-pars['sfm']=1.2
-pars['sim']=0.25
-pars['sgku']=81
-pars['sgkd']=137
-pars['sfk']=357
-pars['sik']=0.6
-pars['nsgku']=6
-pars['nsgkd']=6
-pars['nsfk']=6
-pars['nsik']=4
-pars['tau_sigma']=1
-pars['sci']=1
-pars['gclamp']=0
-pars['iclamp']=0
-pars['maxinfl']=1
-pars['l0']=170
-pars['l2']=8.1
-pars['cf']=2
-pars['ksif']=11
-pars['aa']=2
-pars['sif']=1
-pars['ffa_ramax']=1.106
-pars['lp1']=100
-pars['lp2']=125
-pars['tau_wsc']=1
-
-pars_l=list(pars.values()) 
-pars_npa=np.array(pars_l) 
-pars_n=list(pars.keys()) 
 
 def odde(t,y,pars_npa): 
 	heav=lambda x: np.heaviside(x,1) 
@@ -172,6 +89,7 @@ def odde(t,y,pars_npa):
 	lp1=pars_npa[73]
 	lp2=pars_npa[74]
 	tau_wsc=pars_npa[75]
+	DEi = pars_npa[76]
 	
 #Numerics 
 	nsi_infl=6
@@ -180,7 +98,7 @@ def odde(t,y,pars_npa):
 	tsi1 = target_si*(ksi_infl/(ksi_infl+infl))*(1-mffa*ffa**nsi_ffa/(ffa**nsi_ffa+ksi_ffa**nsi_ffa))
 	tsi2 = target_si*(ksi_infl**nsi_infl/(ksi_infl**nsi_infl+infl**nsi_infl))*(1-mffa*ffa**nsi_ffa/(ffa**nsi_ffa+ksi_ffa**nsi_ffa))
 	tsi = sw11*tsi1+(1-sw11)*tsi2
-	intake_i = 2500
+	# intake_i = 2500 made into DEi
 	inc_int =  0 + heav(t-it1)*heav(it2-t)*heav(it3-t)*inc_i1 + heav(t-it2)*heav(it3-t)*inc_i2 + heav(t-it3)*inc_i3
 	
 	if t>=it2:
@@ -200,7 +118,7 @@ def odde(t,y,pars_npa):
 	inc = 1+inc_int
 	hepa_si = hepa_sic*si
 	hgp = (hgp_bas + hepa_max*(a_hgp+k_gcg*gcg)/((a_hgp+k_gcg*gcg)+hepa_si*i))
-	intake = intake_i*inc
+	intake = DEi*inc
 	s_glucu = sgmu*g**nsgku/(g**nsgku+sgku**nsgku)
 	s_glucd = sgmd*g**nsgkd/(g**nsgkd+sgkd**nsgkd)
 	s_ffa = sfm*ffa**nsfk/(ffa**nsfk+sfk**nsfk)
@@ -211,7 +129,7 @@ def odde(t,y,pars_npa):
 	cl2 = l2*24*60/bv
 	al0 = 2.45*24*60
 
-#Diferetial Equations 
+#Differential Equations 
 	dg=gclamp+hgp-(eg0+sci*si*i)*g
 	di=iclamp+b*isr/bv-k*i
 	dffa=(cl0+cl2*fmass)*(ffa_ramax*(ksif**aa)/(ksif**aa+(siff*i)**aa))-cf*w*ffa
